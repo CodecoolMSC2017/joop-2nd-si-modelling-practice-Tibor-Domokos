@@ -35,7 +35,7 @@ public class Player {
     }
 
     public void playerStatus() {
-        System.out.println("Name: " + getName() + ", Weight: " + getWeight() + " kg, Daily calorie need: " + getDailyMetabolism() + " kcal\n");
+        System.out.println("\nName: " + getName() + ", Weight: " + getWeight() + " kg, Daily calorie needs: " + getDailyMetabolism() + " kcal\n");
     }
 
 }

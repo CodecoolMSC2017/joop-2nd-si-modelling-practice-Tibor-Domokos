@@ -1,4 +1,9 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Formatter;
 import java.util.Scanner;
 
 public class Main {
@@ -7,9 +12,41 @@ public class Main {
     public static String displayMessage = "You're in front of your beloved fridge.";
     public static String gamemMenuType = "main";
     public static int menuSelect;
+
+    public static String name;
+    public static String gender;
+    public static int weight;
+    public static double dailyMetabolism;
+    public static int minWeight = 30;
+    public static int maxWeight = 150;
+
+    public static String saveFile = "save.csv";
+
     
     public static void main(String[] args) {
         clearScreen();
+        System.out.println("\nPlease select:\n\n(1) New game\n(2) Load game\n(3) Quit");
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            try {
+                menuSelect = Integer.parseInt(scanner.nextLine());
+                switch(menuSelect) {
+                    case 1: newGame();
+                            break;
+                    case 2: loadGame();
+                            break;
+                    case 3: clearScreen();
+                            System.out.println("Have a nice day! Bye!\n");
+                            System.exit(-1);
+                            break;
+                    default: displayMessage = "ERROR: It's not a valid menu option."; break;
+                }
+            }
+            catch(NumberFormatException e) {
+                Common.errorMessage("It's not a valid NUMBER");
+            }
+        }
+/*
         System.out.println("Available commands: :new, :load, :exit");
         while (true) {
             Scanner scanner = new Scanner(System.in);
@@ -24,20 +61,15 @@ public class Main {
                 break;
             }
         }
+*/
     }
 
     public static void newGame() {
         // ********** Set Player's data ********** //
 
-        String name;
-        String gender;
-        int weight;
-        double dailyMetabolism;
-        int minWeight = 30;
-        int maxWeight = 150;
-
         Scanner scanner = new Scanner(System.in);
-
+        clearScreen();
+        System.out.println("\nSetting up your game profile...");
         System.out.print("\nWhat is your name?\t>> ");
         name = scanner.nextLine();
 
@@ -71,7 +103,6 @@ public class Main {
             dailyMetabolism = (weight * 10 + 900) * 1.3;
         }
 
-        Player player = new Player(name, gender.toLowerCase(), weight, dailyMetabolism);
         try {
             Fridge.fillUpFridge();
         }
@@ -81,27 +112,80 @@ public class Main {
 
         // ********** Let's start :) ********** //
 
+        letStart();
+        System.out.println(">>> GAME OVER <<<");
+        System.exit(0);
+    }
+
+    private static void saveGame() {
+        try {
+            Formatter newFile = new Formatter(saveFile);
+            newFile.format(name + "\n");
+            newFile.format(gender + "\n");
+            newFile.format(weight + "\n");
+            newFile.format(dailyMetabolism + "\n");
+
+            newFile.format("fridge content 1\n");
+            newFile.format("fridge content 2\n");
+            newFile.format("fridge content 3\n");
+            newFile.format("fridge content 4\n");
+            newFile.format("fridge content...");
+            newFile.close();
+
+            displayMessage = "Game saved successfully! :)";
+        }
+        catch (Exception e) {
+            Common.errorMessage("ERROR: Exception  IN: saveGame()");
+        }
+    }
+
+    private static void loadGame() {
+        File sourceFile = new File(saveFile);
+        if (sourceFile.exists()) {
+            try {
+                Scanner lg = new Scanner(sourceFile);
+                int lineCounter = 1;
+                while (lg.hasNext()) {
+                    String saveGameLine = lg.next();
+                    if(lineCounter == 1) name = saveGameLine;
+                    else if(lineCounter == 2) gender = saveGameLine;
+                    else if(lineCounter == 3) weight = Integer.parseInt(saveGameLine);
+                    else if(lineCounter == 4) dailyMetabolism = Double.parseDouble(saveGameLine);
+
+                    // Fridge content will goes here...
+
+                    lineCounter++;
+                }
+
+                displayMessage = "Game loaded successfully! :)";
+
+                letStart();
+                System.out.println(">>> GAME OVER <<<");
+                System.exit(0);
+            }
+            catch(FileNotFoundException e) {
+                Common.errorMessage("ERROR: FileNotFoundException  IN: loadGame()");
+            }
+        }
+        else {
+            Common.errorMessage("No saved games at this moment! Sorry, yeah?!");
+        }
+    }
+
+    public static void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+
+    public static void letStart() {
+        Player player = new Player(name, gender.toLowerCase(), weight, dailyMetabolism);
         while(minWeight <= player.getWeight() && player.getWeight() <= maxWeight) {
             clearScreen();
             player.playerStatus();
             System.out.println("\033[32m" + displayMessage + "\033[0m\n");
             gamemMenu();
         }
-
-        System.out.println(">>> GAME OVER <<<");
-        System.exit(0);
     }
-
-    private static void saveGame() {
-    }
-
-    private static void loadGame() {
-    }
-
-    public static void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-    } 
 
     public static void gamemMenu() {
         if(gamemMenuType == "main") {
@@ -130,7 +214,8 @@ public class Main {
                                 displayMessage = "The door is closed.";
                             }
                             break;
-                    case 4: break; // SAVE
+                    case 4: saveGame();
+                            break;
                     case 5: clearScreen();
                             System.out.println("Have a nice day! Bye!\n");
                             System.exit(-1);
@@ -148,6 +233,7 @@ public class Main {
             String edibleSelect = scanner.nextLine();
 
             // Check is it in the fridge
+            // LIST.contains(ITEM)
             // Previously a random gen filled up the fridge from the CVS file
             // Yes: adds calories, No: Gives error msg
 
