@@ -36,7 +36,7 @@ public class Main {
                     case 2: loadGame();
                             break;
                     case 3: clearScreen();
-                            System.out.println("Have a nice day! Bye!\n");
+                            System.out.println("\nHave a nice day! Bye!\n");
                             System.exit(-1);
                             break;
                     default: displayMessage = "ERROR: It's not a valid menu option."; break;
@@ -46,22 +46,6 @@ public class Main {
                 Common.errorMessage("It's not a valid NUMBER");
             }
         }
-/*
-        System.out.println("Available commands: :new, :load, :exit");
-        while (true) {
-            Scanner scanner = new Scanner(System.in);
-            String option = scanner.nextLine(); 
-            if (":new".equals(option)) {
-                newGame();
-            }
-            else if (":load".equals(option)) {
-                loadGame();
-            }
-            else if (":exit".equals(option)) {
-                break;
-            }
-        }
-*/
     }
 
     public static void newGame() {
@@ -125,6 +109,9 @@ public class Main {
             newFile.format(weight + "\n");
             newFile.format(dailyMetabolism + "\n");
 
+            Fridge fl = new Fridge(Fridge.totalSlots);
+            System.out.println("fridgeList >> " + fl.getFridgeList());
+            
             newFile.format("fridge content 1\n");
             newFile.format("fridge content 2\n");
             newFile.format("fridge content 3\n");
@@ -180,7 +167,7 @@ public class Main {
     public static void letStart() {
         Player player = new Player(name, gender.toLowerCase(), weight, dailyMetabolism);
         while(minWeight <= player.getWeight() && player.getWeight() <= maxWeight) {
-            clearScreen();
+            //clearScreen();
             player.playerStatus();
             System.out.println("\033[32m" + displayMessage + "\033[0m\n");
             gamemMenu();
@@ -217,7 +204,7 @@ public class Main {
                     case 4: saveGame();
                             break;
                     case 5: clearScreen();
-                            System.out.println("Have a nice day! Bye!\n");
+                            System.out.println("\nHave a nice day! Bye!\n");
                             System.exit(-1);
                             break;
                     default: displayMessage = "ERROR: It's not a valid menu option."; break;
