@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
@@ -9,6 +10,7 @@ import java.util.Scanner;
 public class Fridge {
     static int totalSlots = 12;
     static int freeSlots;
+    static boolean rottenOrNot;
     static Edible[] fridgeList;
 
     Fridge(int totalSlots) {
@@ -32,7 +34,8 @@ public class Fridge {
                     case 0:     Common.errorMessage("ERROR: No data in source file!   IN: fillUpFridge()");
                                 System.exit(-1);
                                 break;
-                    default:    for(int i = 0; i < totalSlots; i++) {
+                    default:    fridgeList = new Edible[totalSlots];
+                                for(int i = 0; i < totalSlots; i++) {
                                     int randomItem = Common.random(1, sourceLineNum);
                                     Scanner sc = new Scanner(sourceFile);
                                     int findLine = 1;
@@ -43,21 +46,20 @@ public class Fridge {
                                             int itemCals = Integer.parseInt(sourceLine.split(",")[2]);
                                             int itemCounter = 1;
 
-                                            fridgeList = new Edible[totalSlots];
+                                            int randomRotten = Common.random(1, 5);
+                                            if(randomRotten == 1) rottenOrNot = true;
+                                            else rottenOrNot = false;
 
                                             if (sourceLine.split(",")[0].equals("drink")) {
                                                 fridgeList[i] = new Drink(itemName, itemCals, false);
-                    /* JUST FOR TESTING */      System.out.println("Name: " + fridgeList[i].getName() + ", Cals: " + fridgeList[i].getCalories() + " Expired: " + fridgeList[i].getIsExpired());
                                                 itemCounter++;
                                             }
                                             else if(sourceLine.split(",")[0].equals("food")) {
-                                                fridgeList[i] = new Food(itemName, itemCals, false);
-                    /* JUST FOR TESTING */      System.out.println("Name: " + fridgeList[i].getName() + ", Cals: " + fridgeList[i].getCalories() + " Expired: " + fridgeList[i].getIsExpired());
+                                                fridgeList[i] = new Food(itemName, itemCals, rottenOrNot);
                                                 itemCounter++;
                                             }
                                             else {
-                                                fridgeList[i] = new Other(itemName, itemCals, false);
-                    /* JUST FOR TESTING */      System.out.println("Name: " + fridgeList[i].getName() + ", Cals: " + fridgeList[i].getCalories() + " Expired: " + fridgeList[i].getIsExpired());
+                                                fridgeList[i] = new Other(itemName, itemCals, true);
                                                 itemCounter++;
                                             }
                                         }

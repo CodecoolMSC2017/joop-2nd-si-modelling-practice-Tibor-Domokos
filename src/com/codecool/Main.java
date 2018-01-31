@@ -22,6 +22,8 @@ public class Main {
 
     public static String saveFile = "save.csv";
 
+    private static Fridge fridge;
+
     
     public static void main(String[] args) {
         clearScreen();
@@ -56,7 +58,10 @@ public class Main {
         System.out.println("\nSetting up your game profile...");
         System.out.print("\nWhat is your name?\t>> ");
         name = scanner.nextLine();
-
+        if(name.equals("")) {
+            name = "Nameless Player";
+        }
+        
         while(true) {
             System.out.print("What is your Gender?\t>> ");
             gender = scanner.nextLine();
@@ -103,6 +108,10 @@ public class Main {
 
     private static void saveGame() {
         try {
+/*
+            ObjectOutputStream oos;
+            oos.writeObject(fridge);
+*/
             Formatter newFile = new Formatter(saveFile);
             newFile.format(name + "\n");
             newFile.format(gender + "\n");
@@ -110,7 +119,10 @@ public class Main {
             newFile.format(dailyMetabolism + "\n");
 
             Fridge fl = new Fridge(Fridge.totalSlots);
-            System.out.println("fridgeList >> " + fl.getFridgeList());
+            for (Edible edible : fl.getFridgeList()) {
+                System.out.println(edible);
+            }
+            
             
             newFile.format("fridge content 1\n");
             newFile.format("fridge content 2\n");
@@ -167,7 +179,7 @@ public class Main {
     public static void letStart() {
         Player player = new Player(name, gender.toLowerCase(), weight, dailyMetabolism);
         while(minWeight <= player.getWeight() && player.getWeight() <= maxWeight) {
-            //clearScreen();
+            clearScreen();
             player.playerStatus();
             System.out.println("\033[32m" + displayMessage + "\033[0m\n");
             gamemMenu();
@@ -215,16 +227,58 @@ public class Main {
             }
         }
         else if(gamemMenuType == "eatAndDrink") {
-            System.out.println("What do you wanna eat or drink?");
+            System.out.println("Choose one of the followings:");
+
+            // Edieble list in the fridge
+            Fridge fl = new Fridge(Fridge.totalSlots);
+            for (Edible edible : fl.getFridgeList()) {
+                System.out.println("  - " + edible.getName() + "(" + edible.getCalories() + ")");
+            }
+
+            System.out.println("\nWhat do you wanna eat or drink?");
             Scanner scanner = new Scanner(System.in);
             String edibleSelect = scanner.nextLine();
 
-            // Check is it in the fridge
-            // LIST.contains(ITEM)
-            // Previously a random gen filled up the fridge from the CVS file
-            // Yes: adds calories, No: Gives error msg
+            if(edibleSelect.equals("") || edibleSelect.equals(" ")) {
+                displayMessage = "Nothing is nothing...";
+            }
+            else {
+                // Check the selected item
+                boolean edibleFound = false;
+                for (Edible edible : fl.getFridgeList()) {
+                    String searchEdieble = edibleSelect.toLowerCase();
+                    String ediebleInList = edible.getName().toLowerCase();
+                    if(ediebleInList.contains(searchEdieble)) edibleFound = true;
+                }
+                if(edibleFound == false) {
+                    displayMessage = "There's nothing in the fridge like " + edibleSelect;
+                }
 
-            displayMessage = "The door is still open.";
+                // Remove selected item from the list
+                if(edibleFound) {
+                    Edible[] fridgeListTemp = new Edible[Fridge.fridgeList.length - 1];
+                    int listPosCounter = 0;
+                    boolean searchMore = true;
+                    for (Edible edible : fl.getFridgeList()) {
+                        String searchEdieble = edibleSelect.toLowerCase();
+                        String ediebleInList = edible.getName().toLowerCase();
+                        if(ediebleInList.contains(searchEdieble) && searchMore == true) {
+                            displayMessage = "You the orcádba toltál one " + edible.getName();
+                            listPosCounter--;
+                            searchMore = false;
+                            Fridge.totalSlots = fridgeListTemp.length;
+
+                            // MODIFY PLAYER'S INFO
+
+                        }
+                        else { 
+                            fridgeListTemp[listPosCounter] = edible;
+                        }
+                        listPosCounter++;
+                    }
+                    Fridge.fridgeList = fridgeListTemp;
+                }
+            }
             gamemMenuType = "main";
         }
     }
