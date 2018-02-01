@@ -1,6 +1,8 @@
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Formatter;
@@ -14,6 +16,7 @@ public class Main {
     public static int menuSelect;
 
     public static String name;
+    public static String nameUnderline;
     public static String gender;
     public static int weight;
     public static double dailyMetabolism;
@@ -23,7 +26,8 @@ public class Main {
     public static String saveFile = "save.csv";
 
     private static Fridge fridge;
-
+    static Edible[] fridgeList;
+    
     
     public static void main(String[] args) {
         clearScreen();
@@ -36,6 +40,7 @@ public class Main {
                     case 1: newGame();
                             break;
                     case 2: loadGame();
+                            Common.errorMessage("WTF2");
                             break;
                     case 3: clearScreen();
                             System.out.println("\nHave a nice day! Bye!\n");
@@ -108,28 +113,27 @@ public class Main {
 
     private static void saveGame() {
         try {
-/*
-            ObjectOutputStream oos;
-            oos.writeObject(fridge);
-*/
             Formatter newFile = new Formatter(saveFile);
-            newFile.format(name + "\n");
-            newFile.format(gender + "\n");
-            newFile.format(weight + "\n");
-            newFile.format(dailyMetabolism + "\n");
+            newFile.close();
 
+            FileWriter fstream = new FileWriter(saveFile,true);
+            BufferedWriter fbw = new BufferedWriter(fstream);
+            name = name.replace(" ","_");
+            fbw.write(name + "\n");
+            fbw.write(gender + "\n");
+            fbw.write(weight + "\n");
+            fbw.write(dailyMetabolism + "\n");
+
+            String fridgeContent;
             Fridge fl = new Fridge(Fridge.totalSlots);
             for (Edible edible : fl.getFridgeList()) {
-                System.out.println(edible);
+                String fridgeItem = edible.getClass() + "," + edible.getName() + "," + edible.getCalories() + "," + edible.getIsExpired();
+                fridgeItem = fridgeItem.replace("class ","");
+                fridgeItem = fridgeItem.replace(" ","_");
+                fbw.write(fridgeItem + "\n");
             }
-            
-            
-            newFile.format("fridge content 1\n");
-            newFile.format("fridge content 2\n");
-            newFile.format("fridge content 3\n");
-            newFile.format("fridge content 4\n");
-            newFile.format("fridge content...");
-            newFile.close();
+
+            fbw.close();
 
             displayMessage = "Game saved successfully! :)";
         }
@@ -142,20 +146,39 @@ public class Main {
         File sourceFile = new File(saveFile);
         if (sourceFile.exists()) {
             try {
+                // Count the lines in the source file
+                BufferedReader reader = new BufferedReader(new FileReader(sourceFile));
+                int sourceLineNum = 0;
+                try {
+                    while (reader.readLine() != null) sourceLineNum++;
+                    reader.close();
+                }
+                catch(IOException e) {
+                    Common.errorMessage("ERROR: IOException   IN: loadGame()");
+                }
+
+                if(sourceLineNum > 4) fridgeList = new Edible[sourceLineNum - 4];
+
                 Scanner lg = new Scanner(sourceFile);
                 int lineCounter = 1;
-                while (lg.hasNext()) {
+                while (lineCounter <= sourceLineNum) {
                     String saveGameLine = lg.next();
-                    if(lineCounter == 1) name = saveGameLine;
+                    if(lineCounter == 1) name = saveGameLine.replace("_"," ");
                     else if(lineCounter == 2) gender = saveGameLine;
                     else if(lineCounter == 3) weight = Integer.parseInt(saveGameLine);
                     else if(lineCounter == 4) dailyMetabolism = Double.parseDouble(saveGameLine);
-
-                    // Fridge content will goes here...
-
+                    else if(lineCounter > 4) {
+                        String loadItemType = saveGameLine.split(",")[0];
+                        String loadItemName = saveGameLine.split(",")[1];
+                        int loadItemCals = Integer.parseInt(saveGameLine.split(",")[2]);
+                        boolean loadItemRotten = Boolean.parseBoolean(saveGameLine.split(",")[3]);
+                        // Need to work on it...
+                        if(loadItemType.equals("Food")) fridgeList[lineCounter - 5] = new Food(loadItemName, loadItemCals, loadItemRotten);
+                        else if(loadItemType.equals("Drink")) fridgeList[lineCounter - 5] = new Drink(loadItemName, loadItemCals, loadItemRotten);
+                        else if(loadItemType.equals("Other")) fridgeList[lineCounter - 5] = new Other(loadItemName, loadItemCals, loadItemRotten);
+                    }
                     lineCounter++;
                 }
-
                 displayMessage = "Game loaded successfully! :)";
 
                 letStart();
@@ -207,7 +230,6 @@ public class Main {
                             break;
                     case 3: if(isFridgeOpen) {
                                 displayMessage = "The door is open.";
-                                // List of foods ???
                             }
                             else {
                                 displayMessage = "The door is closed.";
